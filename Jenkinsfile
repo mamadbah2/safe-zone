@@ -12,7 +12,7 @@ pipeline {
         
         stage('Clean Docker') {
             steps {
-                echo '🧹 Nettoyage Docker...'
+                echo '🧹 Nettoyage Docker..'
                 sh 'docker system prune -af || true'
             }
         }
