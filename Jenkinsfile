@@ -41,7 +41,7 @@ pipeline {
                                  -Dsonar.login=$SONAR_USER_TOKEN
                              cd ..
 
-                             # 🚀 API Gateway
+                             # 🚀 API Gateway Service
                              cd api-gateway
                              mvn clean package -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-api-gateway \
