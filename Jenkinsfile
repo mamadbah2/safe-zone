@@ -28,7 +28,7 @@ pipeline {
                              # 🚀 Discovery Service
                              cd discovery-service
                              mvn clean package -DskipTests=false sonar:sonar \
-                                 -Dsonar.projectKey=safe-zone-discovery \
+                                 -Dsonar.projectKey=sonar-discovery \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.login=$SONAR_USER_TOKEN
                              cd ..
@@ -36,7 +36,7 @@ pipeline {
                              # 🚀 Config Service
                              cd config-service
                              mvn clean package -DskipTests=false sonar:sonar \
-                                 -Dsonar.projectKey=safe-zone-config \
+                                 -Dsonar.projectKey=sonar-config \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.login=$SONAR_USER_TOKEN
                              cd ..
@@ -44,7 +44,7 @@ pipeline {
                              # 🚀 API Gateway
                              cd api-gateway
                              mvn clean package -DskipTests=false sonar:sonar \
-                                 -Dsonar.projectKey=safe-zone-api-gateway \
+                                 -Dsonar.projectKey=sonar-api-gateway \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.login=$SONAR_USER_TOKEN
                              cd ..
@@ -52,7 +52,7 @@ pipeline {
                              # 🚀 Product Service
                              cd product-service
                              mvn clean package -DskipTests=false sonar:sonar \
-                                 -Dsonar.projectKey=safe-zone-product \
+                                 -Dsonar.projectKey=sonar-product \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.login=$SONAR_USER_TOKEN
                              cd ..
@@ -60,7 +60,7 @@ pipeline {
                              # 🚀 User Service
                              cd user-service
                              mvn clean package -DskipTests=false sonar:sonar \
-                                 -Dsonar.projectKey=safe-zone-user \
+                                 -Dsonar.projectKey=sonar-user \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.login=$SONAR_USER_TOKEN
                              cd ..
@@ -68,7 +68,7 @@ pipeline {
                              # 🚀 Media Service
                              cd media-service
                              mvn clean package -DskipTests=false sonar:sonar \
-                                 -Dsonar.projectKey=safe-zone-media \
+                                 -Dsonar.projectKey=sonar-media \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.login=$SONAR_USER_TOKEN
                              cd ..
