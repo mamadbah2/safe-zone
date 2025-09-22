@@ -65,13 +65,7 @@ pipeline {
                                  -Dsonar.login=$SONAR_USER_TOKEN
                              cd ..
 
-                             # 🚀 Media Service
-                             cd media-service
-                             mvn clean package -DskipTests=false sonar:sonar \
-                                 -Dsonar.projectKey=sonar-media \
-                                 -Dsonar.host.url=$SONAR_HOST_URL \
-                                 -Dsonar.login=$SONAR_USER_TOKEN
-                             cd ..
+
                          '''
                      }
                  }
