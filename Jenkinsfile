@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_USER = credentials('docker-hub-credentials') // Nom d'utilisateur et token du Docker Hub
         IMAGE_VERSION = "${env.BUILD_NUMBER}"
-        SERVICES = "frontend product-service user-service media-service api-gateway config-service eureka-server"
+        SERVICES = "frontend product-service user-service api-gateway config-service eureka-server"
         GITHUB_TOKEN = credentials('GITHUB_TOKEN')
     }
 
@@ -104,7 +104,7 @@ pipeline {
                     echo 'Deploying...'
                         echo 'Successful Registration'
                         def dockerhubUser = 'mamadbah2'
-                        def services = ['frontend', 'product-service', 'user-service', 'media-service', 'api-gateway', 'config-service', 'eureka-server']
+                        def services = ['frontend', 'product-service', 'user-service', 'api-gateway', 'config-service', 'eureka-server']
                         echo 'Starting Services'
                         services.each { service ->
                             echo "buy-01-${service}..."
