@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_USER = credentials('docker-hub-credentials') // Nom d'utilisateur et token du Docker Hub
         IMAGE_VERSION = "${env.BUILD_NUMBER}"
-        SERVICES = "frontend product-service user-service api-gateway config-service eureka-server"
+        SERVICES = "frontend product-service user-service api-gateway config-service eureka-server media-service"
         GITHUB_TOKEN = credentials('GITHUB_TOKEN')
     }
 
@@ -65,6 +65,13 @@ pipeline {
                                  -Dsonar.login=$SONAR_USER_TOKEN
                              cd ..
 
+                             # 🚀 Media Service
+                             cd media-service
+                             mvn clean package -DskipTests=false sonar:sonar \
+                                 -Dsonar.projectKey=sonar-media \
+                                 -Dsonar.host.url=$SONAR_HOST_URL \
+                                 -Dsonar.login=$SONAR_USER_TOKEN
+                             cd ..
 
                          '''
                      }
@@ -104,7 +111,7 @@ pipeline {
                     echo 'Deploying...'
                         echo 'Successful Registration'
                         def dockerhubUser = 'mamadbah2'
-                        def services = ['frontend', 'product-service', 'user-service', 'api-gateway', 'config-service', 'eureka-server']
+                        def services = ['frontend', 'product-service', 'user-service', 'api-gateway', 'config-service', 'eureka-server', 'media-service']
                         echo 'Starting Services'
                         services.each { service ->
                             echo "buy-01-${service}..."
