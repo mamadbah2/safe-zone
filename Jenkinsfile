@@ -120,7 +120,7 @@ pipeline {
 
 
                             // Nom de l'image locale - le localImageName est ainsi car etablie par une convention docker deamon
-                            def localImageName = "my_sonar_pipeline-${service}"
+                            def localImageName = "my-sonar-pipeline-${service}"
 
                             // Nom de l'image pour le registre Docker Hub
                             def taggedImageName = "${dockerhubUser}/${service}:${env.BUILD_NUMBER}"
