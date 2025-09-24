@@ -76,12 +76,18 @@ pipeline {
                          '''
                      }
                  }
-
             }
             post {
                 always {
                     sh 'pwd'
                     junit '**/**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+        stage('Sonar Quality Gate') {
+            steps {
+                timeout(time:5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
