@@ -86,8 +86,12 @@ pipeline {
         }
         stage('Sonar Quality Gate') {
             steps {
-                timeout(time:5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                withSonarQubeEnv('safe-zone-mr-jenk') {
+                    withCredentials([string(credentialsId: 'SONAR_USER_TOKEN', variable: 'SONAR_USER_TOKEN')]) {
+                        timeout(time:5, unit: 'MINUTES') {
+                            waitForQualityGate abortPipeline: true
+                        }
+                    }
                 }
             }
         }
