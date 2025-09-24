@@ -5,3 +5,7 @@ docker run -d --name sonarqube \
   -v sonarqube_extensions:/opt/sonarqube/extensions \
   -v sonarqube_logs:/opt/sonarqube/logs \
   sonarqube:latest
+
+
+Temporary Sonarqube token : squ_a9f2fa8976962a63ad8de76cd3dc33bf4471b7b6
+mvn clean package -DskipTests=false sonar:sonar                                  -Dsonar.projectKey=sonar-user                                  -Dsonar.host.url=http://localhost:9000                                  -Dsonar.token=squ_a9f2fa8976962a63ad8de76cd3dc33bf4471b7b6

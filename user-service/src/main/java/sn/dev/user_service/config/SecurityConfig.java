@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -35,8 +36,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 @AllArgsConstructor
 public class SecurityConfig {
-//    private final UserDetailsService userDetailsService;
     private final RSAKeysConfig rsaKeysConfig;
+
+    // Inject the URI from the properties file
+    @Value("${api.endpoints.user-by-id}")
+    private static String userIdPath;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -52,7 +56,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/users",
-                                "/api/users/{id}",
+                                userIdPath,
                                 "/api/users/custom",
                                 "/api/users/{userID}/custom"
                         ).authenticated()
@@ -62,15 +66,15 @@ public class SecurityConfig {
                         ).authenticated()
                         .requestMatchers(
                                 HttpMethod.PUT,
-                                "/api/users/{id}"
+                                userIdPath
                         ).authenticated()
                         .requestMatchers(
                                 HttpMethod.PATCH,
-                                "/api/users/{id}"
+                                userIdPath
                         ).authenticated()
                         .requestMatchers(
                                 HttpMethod.DELETE,
-                                "/api/users/{id}"
+                                userIdPath
                         ).authenticated()
                         .anyRequest().permitAll()
                 )
@@ -90,12 +94,10 @@ public class SecurityConfig {
 
     @Bean
     AuthenticationManager authenticationManager(UserDetailsService userDetailsService) {
-        var authProvider = new DaoAuthenticationProvider();
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-        authProvider.setUserDetailsService(userDetailsService);
         return new ProviderManager(authProvider);
     }
-
 
     @Bean
     JwtDecoder jwtDecoder() {
