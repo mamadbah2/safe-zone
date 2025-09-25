@@ -32,7 +32,8 @@ pipeline {
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
                              cd ..
-
+                          '''
+                         sh '''
                              # 🚀 Config Service
                              cd config-service
                              mvn clean package -DskipTests=false sonar:sonar \
@@ -40,7 +41,8 @@ pipeline {
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
                              cd ..
-
+                         '''
+                         sh '''
                              # 🚀 API Gateway Service
                              cd api-gateway
                              mvn clean package -DskipTests=false sonar:sonar \
@@ -48,7 +50,8 @@ pipeline {
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
                              cd ..
-
+                         '''
+                         sh '''
                              # 🚀 Product Service
                              cd product-service
                              mvn clean package -DskipTests=false sonar:sonar \
@@ -56,7 +59,8 @@ pipeline {
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
                              cd ..
-
+                        '''
+                        sh '''
                              # 🚀 User Service
                              cd user-service
                              mvn clean package -DskipTests=false sonar:sonar \
@@ -64,7 +68,8 @@ pipeline {
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
                              cd ..
-
+                        '''
+                        sh '''
                              # 🚀 Media Service
                              cd media-service
                              mvn clean package -DskipTests=false sonar:sonar \
@@ -73,7 +78,7 @@ pipeline {
                                  -Dsonar.token=$SONAR_USER_TOKEN
                              cd ..
 
-                         '''
+                        '''
                      }
                  }
             }
@@ -91,7 +96,7 @@ pipeline {
                             waitForQualityGate abortPipeline: true
                         }
                     }
-                    
+
             }
         }
         stage('Integration Test') {
