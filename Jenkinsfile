@@ -91,12 +91,9 @@ pipeline {
         }
         stage('Sonar Quality Gate') {
             steps {
-                    withCredentials([string(credentialsId: 'SONAR_USER_TOKEN', variable: 'SONAR_USER_TOKEN')]) {
-                        timeout(time:5, unit: 'MINUTES') {
-                            waitForQualityGate abortPipeline: true
-                        }
-                    }
-
+                timeout(time:5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
         stage('Integration Test') {
