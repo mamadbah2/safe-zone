@@ -67,7 +67,7 @@ pipeline {
 
                              # 🚀 Media Service
                              cd media-service
-                             sudo mvn clean package -DskipTests=false sonar:sonar \
+                             sudo -u jenkins mvn clean package -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-media \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
