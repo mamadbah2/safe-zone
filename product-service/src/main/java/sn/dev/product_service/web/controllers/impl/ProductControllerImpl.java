@@ -27,6 +27,7 @@ public class ProductControllerImpl implements ProductController {
     private final ProductService productService;
     private final MediaServiceClient mediaServiceClient;
     private String maxAge = "300";
+    private static final String USERIDSTR = "userID";
 
     @Override
     public ResponseEntity<ProductResponseDTO> create(
@@ -37,7 +38,7 @@ public class ProductControllerImpl implements ProductController {
         Authentication auth =
             SecurityContextHolder.getContext().getAuthentication();
         Jwt jwt = (Jwt) auth.getPrincipal();
-        String userId = jwt.getClaimAsString("userID");
+        String userId = jwt.getClaimAsString(USERIDSTR);
 
         Product product = productService.create(
             productCreateDTO.toProduct(userId)
@@ -93,7 +94,7 @@ public class ProductControllerImpl implements ProductController {
         Authentication auth =
             SecurityContextHolder.getContext().getAuthentication();
         Jwt jwt = (Jwt) auth.getPrincipal();
-        String userId = jwt.getClaimAsString("userID");
+        String userId = jwt.getClaimAsString(USERIDSTR);
 
         if (!product.getUserId().equals(userId)) {
             throw new ResponseStatusException(
@@ -146,7 +147,7 @@ public class ProductControllerImpl implements ProductController {
         Authentication auth =
             SecurityContextHolder.getContext().getAuthentication();
         Jwt jwt = (Jwt) auth.getPrincipal();
-        String userId = jwt.getClaimAsString("userID");
+        String userId = jwt.getClaimAsString(USERIDSTR);
 
         if (!product.getUserId().equals(userId)) {
             throw new ResponseStatusException(

@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
         private final RSAKeysConfig rsaKeysConfig;
+        private static final String PATHAPIID = "/api/products/{id}";
 
         @Bean
         SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -30,9 +31,9 @@ public class SecurityConfig {
                                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.POST, "/api/products").authenticated()
-                                                .requestMatchers(HttpMethod.PUT, "/api/products/{id}").authenticated()
-                                                .requestMatchers(HttpMethod.PATCH, "/api/products/{id}").authenticated()
-                                                .requestMatchers(HttpMethod.DELETE, "/api/products/{id}")
+                                                .requestMatchers(HttpMethod.PUT, PATHAPIID).authenticated()
+                                                .requestMatchers(HttpMethod.PATCH, PATHAPIID).authenticated()
+                                                .requestMatchers(HttpMethod.DELETE, PATHAPIID)
                                                 .authenticated()
                                                 .anyRequest().permitAll())
                                 .httpBasic(Customizer.withDefaults())
