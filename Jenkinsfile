@@ -172,7 +172,8 @@ pipeline {
 
     post {
          success {
-                sh "sudo echo ${env.BUILD_NUMBER} > last_successful_build.txt"
+                sh "echo ${env.BUILD_NUMBER} > last_successful_build.txt"
+                sh "cat last_successful_build.txt"
                 mail to: 'bahmamadoubobosewa@gmail.com',
                      subject: "SUCCESS: Pipeline ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
                      body: "La pipeline a réussi. Voir les détails sur ${env.BUILD_URL}"
