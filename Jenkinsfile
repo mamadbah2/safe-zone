@@ -27,7 +27,7 @@ pipeline {
 
                              # 🚀 Discovery Service
                              cd discovery-service
-                             sudo mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean package -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-discovery \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
@@ -35,7 +35,7 @@ pipeline {
 
                              # 🚀 Config Service
                              cd config-service
-                             sudo mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean package -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-config \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
@@ -43,7 +43,7 @@ pipeline {
 
                              # 🚀 API Gateway Service
                              cd api-gateway
-                             sudo mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean package -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-api-gateway \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
@@ -51,7 +51,7 @@ pipeline {
 
                              # 🚀 Product Service
                              cd product-service
-                             sudo mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean package -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-product \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
@@ -59,7 +59,7 @@ pipeline {
 
                              # 🚀 User Service
                              cd user-service
-                             sudo mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean package -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-user \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
