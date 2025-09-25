@@ -119,35 +119,35 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying...'
-                        echo 'Successful Registration'
-                        def dockerhubUser = 'mamadbah2'
-                        def services = ['frontend', 'product-service', 'user-service', 'api-gateway', 'config-service', 'eureka-server', 'media-service']
-                        echo 'Starting Services'
-                        services.each { service ->
-                            echo "buy-01-${service}..."
+                    echo 'Successful Registration'
+                    def dockerhubUser = 'mamadbah2'
+                    def services = ['frontend', 'product-service', 'user-service', 'api-gateway', 'config-service', 'eureka-server', 'media-service']
+                    echo 'Starting Services'
+                    services.each { service ->
+                        echo "buy-01-${service}..."
 
-                            withCredentials([usernamePassword(
-                                credentialsId: 'dockerhub-credential',
-                                usernameVariable: 'DOCKER_USER',
-                                passwordVariable: 'DOCKER_PASS'
-                            )]) {
-                                sh 'echo "Username is: $DOCKER_USER"'
-                                sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                            }
-
-
-                            // Nom de l'image locale - le localImageName est ainsi car etablie par une convention docker deamon
-                            def localImageName = "my-sonar-pipeline-${service}"
-
-                            // Nom de l'image pour le registre Docker Hub
-                            def taggedImageName = "${dockerhubUser}/${service}:${env.BUILD_NUMBER}"
-
-                            // Taguer l'image locale avec le nom du registre
-                            sh "docker tag ${localImageName}:latest ${taggedImageName}"
-
-                            // Pousser l'image vers Docker Hub
-                            sh "docker push ${taggedImageName}"
+                        withCredentials([usernamePassword(
+                            credentialsId: 'dockerhub-credential',
+                            usernameVariable: 'DOCKER_USER',
+                            passwordVariable: 'DOCKER_PASS'
+                        )]) {
+                            sh 'echo "Username is: $DOCKER_USER"'
+                            sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                         }
+
+
+                        // Nom de l'image locale - le localImageName est ainsi car etablie par une convention docker deamon
+                        def localImageName = "my-sonar-pipeline-${service}"
+
+                        // Nom de l'image pour le registre Docker Hub
+                        def taggedImageName = "${dockerhubUser}/${service}:${env.BUILD_NUMBER}"
+
+                        // Taguer l'image locale avec le nom du registre
+                        sh "docker tag ${localImageName}:latest ${taggedImageName}"
+
+                        // Pousser l'image vers Docker Hub
+                        sh "docker push ${taggedImageName}"
+                    }
                 }
             }
         }

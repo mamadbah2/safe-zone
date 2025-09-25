@@ -7,7 +7,6 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -39,8 +38,7 @@ public class SecurityConfig {
     private final RSAKeysConfig rsaKeysConfig;
 
     // Inject the URI from the properties file
-    @Value("${api.endpoints.user-by-id}")
-    private static String userIdPath;
+    private static final String USERIDPATH = "/api/users/{id}" ;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -56,7 +54,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/users",
-                                userIdPath,
+                                USERIDPATH,
                                 "/api/users/custom",
                                 "/api/users/{userID}/custom"
                         ).authenticated()
@@ -66,15 +64,15 @@ public class SecurityConfig {
                         ).authenticated()
                         .requestMatchers(
                                 HttpMethod.PUT,
-                                userIdPath
+                                USERIDPATH
                         ).authenticated()
                         .requestMatchers(
                                 HttpMethod.PATCH,
-                                userIdPath
+                                USERIDPATH
                         ).authenticated()
                         .requestMatchers(
                                 HttpMethod.DELETE,
-                                userIdPath
+                                USERIDPATH
                         ).authenticated()
                         .anyRequest().permitAll()
                 )
