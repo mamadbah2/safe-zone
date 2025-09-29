@@ -35,7 +35,7 @@ services:
       context: ./api-gateway
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "5050:5050"
     environment:
       - DOCKER_EUREKA_URL=http://eureka-server:8761/eureka
       - DOCKER_CONFIG_SERVICE_URL=http://config-service:8888
