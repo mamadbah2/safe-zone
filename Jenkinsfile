@@ -27,7 +27,7 @@ pipeline {
 
                              # 🚀 Discovery Service
                              cd discovery-service
-                             mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean verify -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-discovery \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
@@ -36,7 +36,7 @@ pipeline {
                          sh '''
                              # 🚀 Config Service
                              cd config-service
-                             mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean verify -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-config \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
@@ -45,7 +45,7 @@ pipeline {
                          sh '''
                              # 🚀 API Gateway Service
                              cd api-gateway
-                             mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean verify -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-api-gateway \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN
@@ -54,28 +54,31 @@ pipeline {
                          sh '''
                              # 🚀 Product Service
                              cd product-service
-                             mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean verify -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-product \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
-                                 -Dsonar.token=$SONAR_USER_TOKEN
+                                 -Dsonar.token=$SONAR_USER_TOKEN \
+                                 -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
                              cd ..
                         '''
                         sh '''
                              # 🚀 User Service
                              cd user-service
-                             mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean verify -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-user \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
-                                 -Dsonar.token=$SONAR_USER_TOKEN
+                                 -Dsonar.token=$SONAR_USER_TOKEN \
+                                 -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
                              cd ..
                         '''
                         sh '''
                              # 🚀 Media Service
                              cd media-service
-                             mvn clean package -DskipTests=false sonar:sonar \
+                             mvn clean verify -DskipTests=false sonar:sonar \
                                  -Dsonar.projectKey=sonar-media \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
-                                 -Dsonar.token=$SONAR_USER_TOKEN
+                                 -Dsonar.token=$SONAR_USER_TOKEN \
+                                 -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
                              cd ..
 
                         '''
