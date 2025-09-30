@@ -99,7 +99,7 @@ pipeline {
                 }
             }
         }
-        stage('Integration Test') {
+        stage('Integration Test & Build') {
             steps {
                 script {
                     try {
@@ -109,13 +109,6 @@ pipeline {
                         sh 'docker-compose down -v --remove-orphans'
                     }
                 }
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo 'Building...'
-                sh 'docker-compose up -d --build'
             }
         }
 
