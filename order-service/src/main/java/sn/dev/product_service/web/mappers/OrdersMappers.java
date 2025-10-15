@@ -20,7 +20,7 @@ public class OrdersMappers {
         Order order = new Order();
 
         order.setUserId(orderRequestDto.getUserId());
-        order.setStatus("pending");
+        order.setStatus(orderRequestDto.getStatus());
         order.setPaymentMethod(orderRequestDto.getPaymentMethod());
 
         List<OrderItem> orderItemList = orderRequestDto.getItems().stream().map(ordersItemsMappers::toEntity).toList();

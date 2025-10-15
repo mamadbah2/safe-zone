@@ -22,6 +22,8 @@ public class OrderRequestDto {
     private String userId;
     @NotBlank(message = "Order payment method cannot be blank")
     private String paymentMethod;
+    @NotBlank(message = "Status cannot be blank")
+    private String status;
     @NotNull(message = "At least one item is required")
     private List<OrderItemRequestDto> items; // produits commandés
 }
