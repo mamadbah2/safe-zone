@@ -1,4 +1,4 @@
-<div class="my-products-container">
+<div class="my-orders-container">
   <!-- Page Header -->
   <div class="page-header">
     <div class="header-content">
@@ -98,7 +98,7 @@
         </span>
         <input
           type="text"
-          placeholder="Search products by name or description..."
+          placeholder="Search orders by name or description..."
           class="search-input"
           [(ngModel)]="searchTerm"
           (input)="onSearchChange()"
@@ -139,7 +139,7 @@
         </select>
       </div>
 
-      <button class="sort-order-btn" (click)="toggleSortOrder()" [title]="sortOrder === 'asc' ? 'Sort Ascending' : 'Sort Descending'">
+      <button class="sort-product-btn" (click)="toggleSortOrder()" [title]="sortOrder === 'asc' ? 'Sort Ascending' : 'Sort Descending'">
         <span *ngIf="sortOrder === 'asc'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="19" x2="12" y2="5"></line>
@@ -159,7 +159,7 @@
   <!-- Results Summary -->
   <div class="results-bar" *ngIf="!isLoading">
     <div class="results-info">
-      <span class="results-count">{{ filteredProducts.length }} of {{ totalProducts }} products</span>
+      <span class="results-count">{{ filteredProducts.length }} of {{ totalProducts }} orders</span>
       <span class="results-filters" *ngIf="hasActiveFilters()">
         • Filtered results
         <button class="clear-filters" (click)="clearAllFilters()">Clear all filters</button>
@@ -194,7 +194,7 @@
   <!-- Loading State -->
   <div class="loading-container" *ngIf="isLoading">
     <div class="loading-spinner"></div>
-    <p class="loading-text">Loading your products...</p>
+    <p class="loading-text">Loading your orders...</p>
   </div>
 
   <!-- Empty States -->
@@ -206,7 +206,7 @@
         <path d="M12 22V12"></path>
       </svg>
     </div>
-    <h3 class="empty-title">No products yet</h3>
+    <h3 class="empty-title">No orders yet</h3>
     <p class="empty-description">
       Start building your store by adding your first product. You can upload images, set prices, and manage inventory all in one place.
     </p>
@@ -229,15 +229,15 @@
         <path d="m21 21-4.35-4.35"></path>
       </svg>
     </div>
-    <h3 class="empty-title">No products found</h3>
+    <h3 class="empty-title">No orders found</h3>
     <p class="empty-description">
-      We couldn't find any products matching your current filters. Try adjusting your search terms or clearing some filters.
+      We couldn't find any orders matching your current filters. Try adjusting your search terms or clearing some filters.
     </p>
     <button class="btn btn-secondary" (click)="clearAllFilters()">Clear All Filters</button>
   </div>
 
   <!-- Products Grid View -->
-  <div class="products-grid" *ngIf="!isLoading && filteredProducts.length > 0 && viewMode === 'grid'">
+  <div class="orders-grid" *ngIf="!isLoading && filteredProducts.length > 0 && viewMode === 'grid'">
     <div class="product-card" *ngFor="let product of filteredProducts; trackBy: trackByProductId">
       <!-- Product Image -->
       <div class="product-image-container">
@@ -331,7 +331,7 @@
   </div>
 
   <!-- Products List View -->
-  <div class="products-list" *ngIf="!isLoading && filteredProducts.length > 0 && viewMode === 'list'">
+  <div class="orders-list" *ngIf="!isLoading && filteredProducts.length > 0 && viewMode === 'list'">
     <div class="list-header">
       <div class="list-col col-product">Product</div>
       <div class="list-col col-price">Price</div>
@@ -391,7 +391,7 @@
   <!-- Pagination (if needed) -->
   <div class="pagination-container" *ngIf="!isLoading && filteredProducts.length > 0">
     <div class="pagination-info">
-      Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ totalProducts }} products
+      Showing {{ getStartIndex() }}-{{ getEndIndex() }} of {{ totalProducts }} orders
     </div>
     <!-- Add pagination controls here if needed -->
   </div>

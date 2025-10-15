@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_USER = credentials('docker-hub-credentials') // Nom d'utilisateur et token du Docker Hub
         IMAGE_VERSION = "${env.BUILD_NUMBER}"
-        SERVICES = "frontend product-service user-service api-gateway config-service eureka-server media-service"
+        SERVICES = "frontend order-service user-service api-gateway config-service eureka-server media-service"
         GITHUB_TOKEN = credentials('GITHUB_TOKEN')
     }
 
@@ -53,9 +53,9 @@ pipeline {
                          '''
                          sh '''
                              # 🚀 Product Service
-                             cd product-service
+                             cd order-service
                              mvn clean verify -DskipTests=false sonar:sonar \
-                                 -Dsonar.projectKey=sonar-product \
+                                 -Dsonar.projectKey=sonar-order \
                                  -Dsonar.host.url=$SONAR_HOST_URL \
                                  -Dsonar.token=$SONAR_USER_TOKEN \
                                  -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
@@ -118,7 +118,7 @@ pipeline {
                     echo 'Deploying...'
                     echo 'Successful Registration'
                     def dockerhubUser = 'mamadbah2'
-                    def services = ['frontend', 'product-service', 'user-service', 'api-gateway', 'config-service', 'eureka-server', 'media-service']
+                    def services = ['frontend', 'order-service', 'user-service', 'api-gateway', 'config-service', 'eureka-server', 'media-service']
                     echo 'Starting Services'
                     services.each { service ->
                         echo "buy-01-${service}..."

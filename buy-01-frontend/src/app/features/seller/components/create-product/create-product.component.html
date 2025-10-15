@@ -1,4 +1,4 @@
-<div class="create-product-container">
+<div class="create-order-container">
   <!-- Header -->
   <div class="header">
     <div class="header-content">
@@ -7,13 +7,13 @@
         Back to Products
       </button>
       <h1 class="page-title">Create New Product</h1>
-      <p class="page-subtitle">Add a new product to your store</p>
+      <p class="page-subtitle">Add a new order to your store</p>
     </div>
   </div>
 
   <!-- Form Container -->
   <div class="form-container">
-    <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="order-form">
       <!-- Product Information Section -->
       <div class="form-section">
         <h2 class="section-title">Product Information</h2>
@@ -27,7 +27,7 @@
             formControlName="name"
             class="form-input"
             [class.error]="isFieldInvalid('name')"
-            placeholder="Enter product name">
+            placeholder="Enter order name">
           <div class="error-message" *ngIf="isFieldInvalid('name')">
             {{ getFieldError('name') }}
           </div>
@@ -41,7 +41,7 @@
             formControlName="description"
             class="form-textarea"
             [class.error]="isFieldInvalid('description')"
-            placeholder="Describe your product in detail..."
+            placeholder="Describe your order in detail..."
             rows="4"></textarea>
           <div class="error-message" *ngIf="isFieldInvalid('description')">
             {{ getFieldError('description') }}
@@ -92,7 +92,7 @@
       <!-- Product Images Section -->
       <div class="form-section">
         <h2 class="section-title">Product Images</h2>
-        <p class="section-description">Upload high-quality images of your product. You can add up to {{ MAX_FILES }} images.</p>
+        <p class="section-description">Upload high-quality images of your order. You can add up to {{ MAX_FILES }} images.</p>
 
         <!-- File Restrictions Info -->
         <div class="file-restrictions">

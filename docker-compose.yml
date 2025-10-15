@@ -120,6 +120,29 @@ services:
       api-gateway:
         condition: service_healthy
 
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      - DOCKER_EUREKA_URL=http://eureka-server:8761/eureka
+      - DOCKER_CONFIG_SERVICE_URL=http://config-service:8888
+      - DOCKER_PRODUCT_SERVICE_URL=http://product-service:8082/api/products
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+
   frontend:
     build:
       context: ./buy-01-frontend
