@@ -60,7 +60,7 @@ pipeline {
                         echo '🚀 Build et Tests des Services Backend...'
                         sh '''
                             # Build tous les services Maven (utilise le cache MAVEN_OPTS configuré)
-                            mvn -T 1C clean test \
+                            mvn -T 1C verify \
                                 -f discovery-service/pom.xml \
                                 -f config-service/pom.xml \
                                 -f api-gateway/pom.xml \
@@ -106,6 +106,7 @@ pipeline {
                                         -Dsonar.projectKey=sonar-${svc.replace('-service','')} \
                                         -Dsonar.host.url=$SONAR_HOST_URL \
                                         -Dsonar.token=$SONAR_USER_TOKEN \
+                                        -Dsonar.java.binaries=${svc}/target/classes \
                                         ${jacocoOption}
                                 """
                             }
