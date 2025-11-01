@@ -105,7 +105,7 @@ pipeline {
                                     mvn -f ${pom} sonar:sonar \
                                         -Dsonar.projectKey=sonar-${svc.replace('-service','')} \
                                         -Dsonar.host.url=$SONAR_HOST_URL \
-                                        -Dsonar.login=$SONAR_USER_TOKEN \
+                                        -Dsonar.token=$SONAR_USER_TOKEN \
                                         ${jacocoOption}
                                 """
                             }
