@@ -1,8 +1,8 @@
 // filepath: /home/mamadbah/Java/mr-jenk/Jenkinsfile.optimized
 pipeline {
-    agent none // On voulait utiliser des agents par stage : node-agent, maven-agent, docker-agent
+    agent any
 
-    // NOTE: Tous les stages s'exécutent sur le contrôleur Jenkins (label 'built-in')
+    // NOTE: Tous les stages s'exécutent sur le même agent (Jenkins choisit un agent disponible)
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -31,7 +31,6 @@ pipeline {
     stages {
 
         stage('Clean Workspace') {
-            agent { label 'built-in' }
             steps {
                 echo '🧹 Nettoyage de l\'espace de travail...'
                 sh '''
@@ -45,7 +44,6 @@ pipeline {
         stage('Build & Unit Tests') {
             parallel {
                 stage('Frontend') {
-                    agent { label 'built-in' }
                     steps {
                         echo '🧪 Tests Frontend Angular (Headless)...'
                         dir('buy-01-frontend') {
@@ -58,7 +56,6 @@ pipeline {
                 }
 
                 stage('Backend Services') {
-                    agent { label 'built-in' }
                     steps {
                         echo '🚀 Build et Tests des Services Backend...'
                         sh '''
@@ -88,7 +85,6 @@ pipeline {
 
         // Ajout : SonarQube analysis inspiré de Jenkinsfile(safe)
         stage('Sonar Analysis') {
-            agent { label 'built-in' }
             steps {
                 echo '🔍 Exécution des analyses Sonar pour les services backend...'
                 script {
@@ -120,7 +116,6 @@ pipeline {
         }
 
         stage('Sonar Quality Gate') {
-            agent { label 'built-in' }
             steps {
                 timeout(time:25, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
@@ -129,7 +124,6 @@ pipeline {
         }
 
         stage('Build Docker Images') {
-            agent { label 'built-in' }
             steps {
                 echo '🐳 Construction des images Docker en parallèle...'
                 script {
@@ -155,7 +149,6 @@ pipeline {
         }
 
         stage('Integration Tests') {
-            agent { label 'built-in' }
             steps {
                 echo '🧪 Tests d\'intégration...'
                 script {
@@ -191,7 +184,6 @@ pipeline {
         }
 
         stage('Push to Docker Hub') {
-            agent { label 'built-in' }
             steps {
                 script {
                     echo '📤 Push des images vers Docker Hub...'
@@ -231,7 +223,6 @@ pipeline {
         }
 
         stage('Deploy Locally') {
-            agent { label 'built-in' }
             steps {
                 script {
                     echo "🚀 Déploiement local, version ${env.BUILD_NUMBER}..."
@@ -262,7 +253,6 @@ pipeline {
         }
 
         stage('Health Check') {
-            agent { label 'built-in' }
             steps {
                 script {
                     echo '🏥 Vérification de la santé des services...'
@@ -293,7 +283,7 @@ pipeline {
         success {
             script {
                 // s'assurer que les commandes Docker du post s'exécutent sur le noeud contrôleur
-                node('built-in') {
+                node {
                     // Nettoyer les anciennes images
                     sh '''
                         docker images | grep "${DOCKER_HUB_USER}" | grep -v "${IMAGE_VERSION}" | grep -v "latest" | awk '{print $3}' | xargs -r docker rmi -f || true
@@ -314,7 +304,7 @@ pipeline {
 
                 def lastSuccessfulBuild = currentBuild.previousSuccessfulBuild
 
-                node('built-in') {
+                node {
                     if (lastSuccessfulBuild && lastSuccessfulBuild.number != env.BUILD_NUMBER) {
                         echo "🔄 Rollback vers la version ${lastSuccessfulBuild.number}..."
                         try {
@@ -344,7 +334,7 @@ pipeline {
 
         always {
             script {
-                node('built-in') {
+                node {
                     echo '🧹 Nettoyage final...'
                     sh '''
                         # Nettoyer les conteneurs arrêtés et les images dangereuses
