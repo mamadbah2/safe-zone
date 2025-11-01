@@ -1,12 +1,8 @@
 // filepath: /home/mamadbah/Java/mr-jenk/Jenkinsfile.optimized
 pipeline {
-    agent none // On utilise des agents par stage : node-agent, maven-agent, docker-agent
+    agent none // On voulait utiliser des agents par stage : node-agent, maven-agent, docker-agent
 
-    // NOTE: Assumptions - adjust labels if your Jenkins uses different node labels:
-    //  - 'node-agent'  : machine with Node.js + npm (for frontend tests)
-    //  - 'maven-agent' : machine with Maven and JDK (for backend build/tests)
-    //  - 'docker-agent' : machine with Docker Buildx / Docker daemon (for image builds)
-    //  - 'master' : the controller/main node used for orchestration and other stages
+    // NOTE: Tous les stages s'exécutent sur le contrôleur Jenkins (label 'built-in')
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -49,7 +45,7 @@ pipeline {
         stage('Build & Unit Tests') {
             parallel {
                 stage('Frontend') {
-                    agent { label 'node-agent' }
+                    agent { label 'built-in' }
                     steps {
                         echo '🧪 Tests Frontend Angular (Headless)...'
                         dir('buy-01-frontend') {
@@ -62,7 +58,7 @@ pipeline {
                 }
 
                 stage('Backend Services') {
-                    agent { label 'maven-agent' }
+                    agent { label 'built-in' }
                     steps {
                         echo '🚀 Build et Tests des Services Backend...'
                         sh '''
@@ -133,7 +129,7 @@ pipeline {
         }
 
         stage('Build Docker Images') {
-            agent { label 'docker-agent' }
+            agent { label 'built-in' }
             steps {
                 echo '🐳 Construction des images Docker en parallèle...'
                 script {
