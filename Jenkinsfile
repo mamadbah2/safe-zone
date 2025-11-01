@@ -1,6 +1,12 @@
 // filepath: /home/mamadbah/Java/mr-jenk/Jenkinsfile.optimized
 pipeline {
-    agent any
+    agent none // On utilise des agents par stage : node-agent, maven-agent, docker-agent
+
+    // NOTE: Assumptions - adjust labels if your Jenkins uses different node labels:
+    //  - 'node-agent'  : machine with Node.js + npm (for frontend tests)
+    //  - 'maven-agent' : machine with Maven and JDK (for backend build/tests)
+    //  - 'docker-agent' : machine with Docker Buildx / Docker daemon (for image builds)
+    //  - 'master' : the controller/main node used for orchestration and other stages
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '10'))
@@ -29,6 +35,7 @@ pipeline {
     stages {
 
         stage('Clean Workspace') {
+            agent { label 'built-in' }
             steps {
                 echo '🧹 Nettoyage de l\'espace de travail...'
                 sh '''
@@ -40,39 +47,43 @@ pipeline {
         }
 
         stage('Build & Unit Tests') {
-            steps {
-                echo '🚀 Build et tests unitaires en parallèle...'
-                script {
-                    parallel(
-                        'Frontend': {
-                            echo '🧪 Tests Frontend Angular (Headless)...'
-                            dir('buy-01-frontend') {
-                                sh '''
-                                    npm ci --cache ${NPM_CONFIG_CACHE}
-                                    npm run test:headless
-                                '''
-                            }
-                        },
-                        'Backend Services': {
-                            echo '🚀 Build et Tests des Services Backend...'
+            parallel {
+                stage('Frontend') {
+                    agent { label 'node-agent' }
+                    steps {
+                        echo '🧪 Tests Frontend Angular (Headless)...'
+                        dir('buy-01-frontend') {
                             sh '''
-                                # Build tous les services Maven en parallèle avec cache
-                                mvn -T 1C clean test \
-                                    -f discovery-service/pom.xml \
-                                    -f config-service/pom.xml \
-                                    -f api-gateway/pom.xml \
-                                    -f product-service/pom.xml \
-                                    -f user-service/pom.xml \
-                                    -f media-service/pom.xml \
-                                    --batch-mode \
-                                    -Dmaven.test.failure.ignore=false
+                                npm ci --cache ${NPM_CONFIG_CACHE}
+                                npm run test:headless
                             '''
                         }
-                    )
+                    }
+                }
+
+                stage('Backend Services') {
+                    agent { label 'maven-agent' }
+                    steps {
+                        echo '🚀 Build et Tests des Services Backend...'
+                        sh '''
+                            # Build tous les services Maven (utilise le cache MAVEN_OPTS configuré)
+                            mvn -T 1C clean test \
+                                -f discovery-service/pom.xml \
+                                -f config-service/pom.xml \
+                                -f api-gateway/pom.xml \
+                                -f product-service/pom.xml \
+                                -f user-service/pom.xml \
+                                -f media-service/pom.xml \
+                                --batch-mode \
+                                -Dmaven.test.failure.ignore=false
+                        '''
+                    }
                 }
             }
             post {
                 always {
+                    // Les rapports JUnit et les artefacts proviennent des agents; nous archiveons depuis le contrôleur
+                    // pour éviter les problèmes d'accès, on copie d'abord les artefacts si nécessaire.
                     junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
                     archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
                 }
@@ -81,6 +92,7 @@ pipeline {
 
         // Ajout : SonarQube analysis inspiré de Jenkinsfile(safe)
         stage('Sonar Analysis') {
+            agent { label 'built-in' }
             steps {
                 echo '🔍 Exécution des analyses Sonar pour les services backend...'
                 script {
@@ -112,6 +124,7 @@ pipeline {
         }
 
         stage('Sonar Quality Gate') {
+            agent { label 'built-in' }
             steps {
                 timeout(time:25, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
@@ -120,6 +133,7 @@ pipeline {
         }
 
         stage('Build Docker Images') {
+            agent { label 'docker-agent' }
             steps {
                 echo '🐳 Construction des images Docker en parallèle...'
                 script {
@@ -145,6 +159,7 @@ pipeline {
         }
 
         stage('Integration Tests') {
+            agent { label 'built-in' }
             steps {
                 echo '🧪 Tests d\'intégration...'
                 script {
@@ -180,6 +195,7 @@ pipeline {
         }
 
         stage('Push to Docker Hub') {
+            agent { label 'built-in' }
             steps {
                 script {
                     echo '📤 Push des images vers Docker Hub...'
@@ -219,6 +235,7 @@ pipeline {
         }
 
         stage('Deploy Locally') {
+            agent { label 'built-in' }
             steps {
                 script {
                     echo "🚀 Déploiement local, version ${env.BUILD_NUMBER}..."
@@ -249,6 +266,7 @@ pipeline {
         }
 
         stage('Health Check') {
+            agent { label 'built-in' }
             steps {
                 script {
                     echo '🏥 Vérification de la santé des services...'
@@ -278,30 +296,19 @@ pipeline {
     post {
         success {
             script {
-                // Nettoyer les anciennes images
-                sh '''
-                    docker images | grep "${DOCKER_HUB_USER}" | grep -v "${IMAGE_VERSION}" | grep -v "latest" | awk '{print $3}' | xargs -r docker rmi -f || true
-                '''
+                // s'assurer que les commandes Docker du post s'exécutent sur le noeud contrôleur
+                node('built-in') {
+                    // Nettoyer les anciennes images
+                    sh '''
+                        docker images | grep "${DOCKER_HUB_USER}" | grep -v "${IMAGE_VERSION}" | grep -v "latest" | awk '{print $3}' | xargs -r docker rmi -f || true
+                    '''
 
-                emailext(
-                    to: 'bahmamadoubobosewa@gmail.com',
-                    subject: "✅ SUCCESS: Pipeline ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
-                    body: """
-                        <h2>Pipeline réussie !</h2>
-                        <p><strong>Job:</strong> ${env.JOB_NAME}</p>
-                        <p><strong>Build:</strong> ${env.BUILD_NUMBER}</p>
-                        <p><strong>Version:</strong> ${env.IMAGE_VERSION}</p>
-                        <p><strong>Durée:</strong> ${currentBuild.durationString}</p>
-                        <p><a href="${env.BUILD_URL}">Voir les détails</a></p>
-                    """,
-                    mimeType: 'text/html'
-                )
-
-                mail(
-                    to: 'bahmamadoubobosewa@gmail.com',
-                    subject: "SUCCESS: Pipeline ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
-                    body: "Le pipeline a réussi.\nJob: ${env.JOB_NAME}\nBuild: ${env.BUILD_NUMBER}\nVoir les détails: ${env.BUILD_URL}"
-                )
+                    mail(
+                        to: 'bahmamadoubobosewa@gmail.com',
+                        subject: "SUCCESS: Pipeline ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+                        body: "Le pipeline a réussi.\nJob: ${env.JOB_NAME}\nBuild: ${env.BUILD_NUMBER}\nVoir les détails: ${env.BUILD_URL}"
+                    )
+                }
             }
         }
 
@@ -311,53 +318,45 @@ pipeline {
 
                 def lastSuccessfulBuild = currentBuild.previousSuccessfulBuild
 
-                if (lastSuccessfulBuild && lastSuccessfulBuild.number != env.BUILD_NUMBER) {
-                    echo "🔄 Rollback vers la version ${lastSuccessfulBuild.number}..."
-                    try {
-                        withEnv(["IMAGE_VERSION=${lastSuccessfulBuild.number}"]) {
-                            sh '''
-                                docker-compose -f docker-compose-deploy.yml down
-                                docker-compose -f docker-compose-deploy.yml pull
-                                docker-compose -f docker-compose-deploy.yml up -d
-                            '''
+                node('built-in') {
+                    if (lastSuccessfulBuild && lastSuccessfulBuild.number != env.BUILD_NUMBER) {
+                        echo "🔄 Rollback vers la version ${lastSuccessfulBuild.number}..."
+                        try {
+                            withEnv(["IMAGE_VERSION=${lastSuccessfulBuild.number}"]) {
+                                sh '''
+                                    docker-compose -f docker-compose-deploy.yml down
+                                    docker-compose -f docker-compose-deploy.yml pull
+                                    docker-compose -f docker-compose-deploy.yml up -d
+                                '''
+                            }
+                            echo "✅ Rollback réussi vers la version ${lastSuccessfulBuild.number}"
+                        } catch (Exception e) {
+                            echo "❌ Échec du rollback: ${e.message}"
                         }
-                        echo "✅ Rollback réussi vers la version ${lastSuccessfulBuild.number}"
-                    } catch (Exception e) {
-                        echo "❌ Échec du rollback: ${e.message}"
+                    } else {
+                        echo "⚠️ Aucune version précédente disponible pour rollback."
                     }
-                } else {
-                    echo "⚠️ Aucune version précédente disponible pour rollback."
+
+                    mail(
+                        to: 'bahmamadoubosewa@gmail.com',
+                        subject: "FAILURE: Pipeline ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
+                        body: "Le pipeline a echoue.\nJob: ${env.JOB_NAME}\nBuild: ${env.BUILD_NUMBER}\nVoir les détails: ${env.BUILD_URL}"
+                    )
                 }
-
-                emailext(
-                    to: 'bahmamadoubobosewa@gmail.com',
-                    subject: "❌ FAILURE: Pipeline ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
-                    body: """
-                        <h2>Pipeline échouée !</h2>
-                        <p><strong>Job:</strong> ${env.JOB_NAME}</p>
-                        <p><strong>Build:</strong> ${env.BUILD_NUMBER}</p>
-                        <p><strong>Étape échouée:</strong> ${env.STAGE_NAME}</p>
-                        <p><strong>Durée:</strong> ${currentBuild.durationString}</p>
-                        <p><a href="${env.BUILD_URL}console">Voir les logs</a></p>
-                    """,
-                    mimeType: 'text/html'
-                )
-
-                mail(
-                    to: 'bahmamadoubobosewa@gmail.com',
-                    subject: "FAILURE: Pipeline ${env.JOB_NAME} [${env.BUILD_NUMBER}]",
-                    body: "Le pipeline a echoue.\nJob: ${env.JOB_NAME}\nBuild: ${env.BUILD_NUMBER}\nVoir les détails: ${env.BUILD_URL}"
-                )
             }
         }
 
         always {
-            echo '🧹 Nettoyage final...'
-            sh '''
-                # Nettoyer les conteneurs arrêtés et les images dangereuses
-                docker container prune -f || true
-                docker image prune -f || true
-            '''
+            script {
+                node('built-in') {
+                    echo '🧹 Nettoyage final...'
+                    sh '''
+                        # Nettoyer les conteneurs arrêtés et les images dangereuses
+                        docker container prune -f || true
+                        docker image prune -f || true
+                    '''
+                }
+            }
         }
     }
 }

@@ -17,6 +17,7 @@
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/../provi/discovery-service/pom.xml" />
+        <option value="$PROJECT_DIR$/order-service/pom.xml" />
       </set>
     </option>
   </component>
