@@ -16,6 +16,9 @@ pipeline {
         IMAGE_VERSION = "${env.BUILD_NUMBER}"
         GITHUB_TOKEN = credentials('GITHUB_TOKEN')
 
+        // Préfixe pour éviter les conflits entre projets
+        PROJECT_NAME = 'safe-zone'
+
         // Media Service credentials
         MONGODB_URI = credentials('MONGODB_URI_BOBO')
         MONGODB_DATABASE = credentials('MONGODB_DATABASE')
@@ -23,9 +26,11 @@ pipeline {
         SUPABASE_API_KEY = credentials('SUPABASE_API_KEY')
         SUPABASE_BUCKET_NAME = credentials('SUPABASE_BUCKET_NAME')
 
-        // Cache directories
-        MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
+        // Cache directories - améliore la performance
+        MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository -Dmaven.artifact.threads=10'
         NPM_CONFIG_CACHE = '.npm-cache'
+        DOCKER_BUILDKIT = '1'
+        COMPOSE_DOCKER_CLI_BUILD = '1'
     }
 
     stages {
@@ -91,24 +96,30 @@ pipeline {
                     withSonarQubeEnv('safe-zone-mr-jenk') {
                         withCredentials([string(credentialsId: 'SONAR_USER_TOKEN', variable: 'SONAR_USER_TOKEN')]) {
                             def services = ['discovery-service','config-service','api-gateway','product-service','user-service','media-service']
-                            services.each { svc ->
-                                echo "🔎 Sonar pour ${svc}..."
-                                def pom = "${svc}/pom.xml"
-                                // Certaines applications produisent des rapports JaCoCo
-                                def jacocoOption = ''
-                                if (svc in ['product-service','user-service','media-service']) {
-                                    jacocoOption = "-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
-                                }
+                            def parallelSonar = [:]
 
-                                sh """
-                                    mvn -f ${pom} sonar:sonar \
-                                        -Dsonar.projectKey=sonar-${svc.replace('-service','')} \
-                                        -Dsonar.host.url=$SONAR_HOST_URL \
-                                        -Dsonar.token=$SONAR_USER_TOKEN \
-                                        -Dsonar.java.binaries=target/classes \
-                                        ${jacocoOption}
-                                """
+                            services.each { svc ->
+                                parallelSonar[svc] = {
+                                    echo "🔎 Sonar pour ${svc}..."
+                                    def pom = "${svc}/pom.xml"
+                                    // Certaines applications produisent des rapports JaCoCo
+                                    def jacocoOption = ''
+                                    if (svc in ['product-service','user-service','media-service']) {
+                                        jacocoOption = "-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
+                                    }
+
+                                    sh """
+                                        mvn -f ${pom} sonar:sonar \
+                                            -Dsonar.projectKey=sonar-${svc.replace('-service','')} \
+                                            -Dsonar.host.url=$SONAR_HOST_URL \
+                                            -Dsonar.token=$SONAR_USER_TOKEN \
+                                            -Dsonar.java.binaries=target/classes \
+                                            ${jacocoOption}
+                                    """
+                                }
                             }
+
+                            parallel parallelSonar
                         }
                     }
                 }
@@ -137,6 +148,8 @@ pipeline {
                             sh """
                                 docker build -t my_buy01_pipeline2-${service}:latest \
                                     --build-arg BUILDKIT_INLINE_CACHE=1 \
+                                    --build-arg MAVEN_OPTS="-Dmaven.test.skip=true" \
+                                    --cache-from ${DOCKER_HUB_USER}/${PROJECT_NAME}-${service}:latest \
                                     -f ${serviceDir}/Dockerfile \
                                     ${serviceDir}
                             """
@@ -156,6 +169,7 @@ pipeline {
                         try {
                             withEnv([
                                 "IMAGE_VERSION=${env.BUILD_NUMBER}",
+                                "PROJECT_NAME=${PROJECT_NAME}",
                                 "GITHUB_TOKEN=${env.GITHUB_TOKEN}",
                                 "SUPABASE_PROJECT_URL=${env.SUPABASE_PROJECT_URL}",
                                 "SUPABASE_API_KEY=${env.SUPABASE_API_KEY}",
@@ -166,9 +180,16 @@ pipeline {
                                 sh '''
                                     docker-compose up -d
 
-                                    # Attendre que les services soient prêts
+                                    # Attendre que les services soient prêts avec health checks
                                     echo "⏳ Attente du démarrage des services..."
-                                    sleep 60
+                                    for i in {1..40}; do
+                                        if docker-compose ps | grep -E "(healthy|running)" | wc -l | grep -q 7; then
+                                            echo "✅ Tous les services sont démarrés"
+                                            break
+                                        fi
+                                        echo "Tentative $i/40..."
+                                        sleep 5
+                                    done
 
                                     # Vérifier que les services sont en bonne santé
                                     docker-compose ps
@@ -202,8 +223,9 @@ pipeline {
                     services.each { service ->
                         parallelPushes[service] = {
                             def localImageName = "my_buy01_pipeline2-${service}"
-                            def taggedImageName = "${DOCKER_HUB_USER}/${service}:${env.BUILD_NUMBER}"
-                            def latestImageName = "${DOCKER_HUB_USER}/${service}:latest"
+                            // Préfixer avec PROJECT_NAME pour éviter les conflits entre applications
+                            def taggedImageName = "${DOCKER_HUB_USER}/${PROJECT_NAME}-${service}:${env.BUILD_NUMBER}"
+                            def latestImageName = "${DOCKER_HUB_USER}/${PROJECT_NAME}-${service}:latest"
 
                             echo "📦 Push de ${service}..."
                             sh """
@@ -230,6 +252,7 @@ pipeline {
                     timeout(time: 10, unit: 'MINUTES') {
                         withEnv([
                             "IMAGE_VERSION=${env.BUILD_NUMBER}",
+                            "PROJECT_NAME=${PROJECT_NAME}",
                             "GITHUB_TOKEN=${env.GITHUB_TOKEN}",
                             "SUPABASE_PROJECT_URL=${env.SUPABASE_PROJECT_URL}",
                             "SUPABASE_API_KEY=${env.SUPABASE_API_KEY}",
@@ -243,7 +266,15 @@ pipeline {
                                 docker-compose -f docker-compose-deploy.yml up -d
 
                                 # Vérifier l'état des conteneurs
-                                sleep 30
+                                echo "⏳ Attente du démarrage..."
+                                for i in {1..20}; do
+                                    if docker-compose -f docker-compose-deploy.yml ps | grep -q "Up"; then
+                                        echo "✅ Services démarrés"
+                                        break
+                                    fi
+                                    echo "Tentative $i/20..."
+                                    sleep 3
+                                done
                                 docker-compose -f docker-compose-deploy.yml ps
                             '''
                         }

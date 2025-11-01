@@ -1,4 +1,7 @@
 # Anchors YAML pour éviter la répétition
+# Note: Utiliser PROJECT_NAME dans les noms d'images (défini comme variable d'environnement)
+# Exemple: export PROJECT_NAME=safe-zone
+
 x-healthcheck-defaults: &healthcheck-defaults
   interval: 15s
   timeout: 10s
@@ -32,7 +35,7 @@ networks:
 services:
   eureka-server:
     <<: *spring-service-defaults
-    image: mamadbah2/eureka-server:${IMAGE_VERSION}
+    image: ${DOCKER_HUB_USER:-mamadbah2}/${PROJECT_NAME:-safe-zone}-eureka-server:${IMAGE_VERSION}
     container_name: eureka-server-prod
     ports:
       - "8761:8761"
@@ -46,7 +49,7 @@ services:
 
   config-service:
     <<: *spring-service-defaults
-    image: mamadbah2/config-service:${IMAGE_VERSION}
+    image: ${DOCKER_HUB_USER:-mamadbah2}/${PROJECT_NAME:-safe-zone}-config-service:${IMAGE_VERSION}
     container_name: config-service-prod
     ports:
       - "8888:8888"
@@ -65,7 +68,7 @@ services:
 
   media-service:
     <<: *spring-service-defaults
-    image: mamadbah2/media-service:${IMAGE_VERSION}
+    image: ${DOCKER_HUB_USER:-mamadbah2}/${PROJECT_NAME:-safe-zone}-media-service:${IMAGE_VERSION}
     container_name: media-service-prod
     ports:
       - "8083:8083"
@@ -90,7 +93,7 @@ services:
 
   product-service:
     <<: *spring-service-defaults
-    image: mamadbah2/product-service:${IMAGE_VERSION}
+    image: ${DOCKER_HUB_USER:-mamadbah2}/${PROJECT_NAME:-safe-zone}-product-service:${IMAGE_VERSION}
     container_name: product-service-prod
     ports:
       - "8082:8082"
@@ -113,7 +116,7 @@ services:
 
   user-service:
     <<: *spring-service-defaults
-    image: mamadbah2/user-service:${IMAGE_VERSION}
+    image: ${DOCKER_HUB_USER:-mamadbah2}/${PROJECT_NAME:-safe-zone}-user-service:${IMAGE_VERSION}
     container_name: user-service-prod
     ports:
       - "8081:8081"
@@ -133,7 +136,7 @@ services:
 
   api-gateway:
     <<: *spring-service-defaults
-    image: mamadbah2/api-gateway:${IMAGE_VERSION}
+    image: ${DOCKER_HUB_USER:-mamadbah2}/${PROJECT_NAME:-safe-zone}-api-gateway:${IMAGE_VERSION}
     container_name: api-gateway-prod
     ports:
       - "5050:5050"
@@ -158,7 +161,7 @@ services:
       - microservices-network
 
   frontend:
-    image: mamadbah2/frontend:${IMAGE_VERSION}
+    image: ${DOCKER_HUB_USER:-mamadbah2}/${PROJECT_NAME:-safe-zone}-frontend:${IMAGE_VERSION}
     container_name: frontend-prod
     restart: unless-stopped
     ports:
