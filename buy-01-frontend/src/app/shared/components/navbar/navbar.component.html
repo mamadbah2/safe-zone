@@ -25,7 +25,7 @@
             </button>
             <div class="dropdown-menu" [class.show]="isDropdownOpen">
               <!-- Common Navigation -->
-              <a routerLink="/orders" class="dropdown-item" (click)="closeDropdown()">
+              <a routerLink="/products" class="dropdown-item" (click)="closeDropdown()">
                 <lucide-icon [img]="Home" class="dropdown-icon"></lucide-icon>
                 Products
               </a>
@@ -39,7 +39,7 @@
               <!-- Seller Specific Navigation -->
               <ng-container *ngIf="isSeller">
                 <div class="dropdown-divider"></div>
-                <a routerLink="/seller/my-orders" class="dropdown-item" (click)="closeDropdown()">
+                <a routerLink="/seller/my-products" class="dropdown-item" (click)="closeDropdown()">
                   <lucide-icon [img]="Package" class="dropdown-icon"></lucide-icon>
                   My Products
                 </a>
@@ -79,7 +79,7 @@
       <div class="mobile-user-actions">
         <ng-container *ngIf="isLoggedIn; else mobileLoginButton">
           <!-- Common Navigation -->
-          <a routerLink="/orders"
+          <a routerLink="/products"
              routerLinkActive="active"
              class="mobile-nav-link"
              (click)="navigateToProducts()">
@@ -98,7 +98,7 @@
 
           <!-- Seller Specific Navigation in Mobile -->
           <ng-container *ngIf="isSeller">
-            <a routerLink="/seller/my-orders"
+            <a routerLink="/seller/my-products"
                routerLinkActive="active"
                class="mobile-nav-link"
                (click)="navigateToMyProducts()">
@@ -114,7 +114,7 @@
         </ng-container>
         <ng-template #mobileLoginButton>
           <!-- Products link for guests -->
-          <a routerLink="/orders"
+          <a routerLink="/products"
              routerLinkActive="active"
              class="mobile-nav-link"
              (click)="navigateToProducts()">
