@@ -87,52 +87,45 @@ pipeline {
             }
         }
 
-        // Ajout : SonarQube analysis inspiré de Jenkinsfile(safe)
-        stage('Sonar Analysis') {
+        stage('Code Quality (Sonar + Gate)') {
             steps {
-                echo '🔍 Exécution des analyses Sonar pour les services backend...'
+                echo '🔍 Analyses Sonar en parallèle + attente des Quality Gates...'
                 script {
-                    // Utilise l'environnement Sonar configuré dans Jenkins (withSonarQubeEnv)
                     withSonarQubeEnv('safe-zone-mr-jenk') {
                         withCredentials([string(credentialsId: 'SONAR_USER_TOKEN', variable: 'SONAR_USER_TOKEN')]) {
                             def services = ['discovery-service','config-service','api-gateway','product-service','user-service','media-service']
-                            def parallelSonar = [:]
+                            def parallelQuality = [:]
 
                             services.each { svc ->
-                                parallelSonar[svc] = {
+                                parallelQuality[svc] = {
                                     echo "🔎 Sonar pour ${svc}..."
-                                    def pom = "${svc}/pom.xml"
-                                    // Certaines applications produisent des rapports JaCoCo
-                                    def jacocoOption = ''
-                                    if (svc in ['product-service','user-service','media-service']) {
-                                        jacocoOption = "-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
-                                    }
+                                    dir(svc) {
+                                        def jacocoOption = (svc in ['product-service','user-service','media-service']) ?
+                                            "-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml" : ""
 
-                                    sh """
-                                        mvn -f ${pom} sonar:sonar \
-                                            -Dsonar.projectKey=sonar-${svc.replace('-service','')} \
-                                            -Dsonar.host.url=$SONAR_HOST_URL \
-                                            -Dsonar.token=$SONAR_USER_TOKEN \
-                                            -Dsonar.java.binaries=target/classes \
-                                            ${jacocoOption}
-                                    """
+                                        sh """
+                                            mvn sonar:sonar \
+                                                -Dsonar.projectKey=sonar-${svc.replace('-service','')} \
+                                                -Dsonar.host.url=$SONAR_HOST_URL \
+                                                -Dsonar.token=$SONAR_USER_TOKEN \
+                                                -Dsonar.java.binaries=target/classes \
+                                                ${jacocoOption}
+                                        """
+
+                                        timeout(time: 10, unit: 'MINUTES') {
+                                            waitForQualityGate abortPipeline: true
+                                        }
+                                    }
                                 }
                             }
 
-                            parallel parallelSonar
+                            parallel parallelQuality
                         }
                     }
                 }
             }
         }
 
-        stage('Sonar Quality Gate') {
-            steps {
-                timeout(time:10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
 
         stage('Build Docker Images') {
             steps {
