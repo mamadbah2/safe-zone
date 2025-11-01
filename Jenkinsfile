@@ -58,18 +58,17 @@ pipeline {
                 stage('Backend Services') {
                     steps {
                         echo '🚀 Build et Tests des Services Backend...'
-                        sh '''
-                            # Build tous les services Maven (utilise le cache MAVEN_OPTS configuré)
-                            mvn -T 1C verify \
-                                -f discovery-service/pom.xml \
-                                -f config-service/pom.xml \
-                                -f api-gateway/pom.xml \
-                                -f product-service/pom.xml \
-                                -f user-service/pom.xml \
-                                -f media-service/pom.xml \
-                                --batch-mode \
-                                -Dmaven.test.failure.ignore=false
-                        '''
+                        script {
+                            def services = ['discovery-service', 'config-service', 'api-gateway', 'product-service', 'user-service', 'media-service']
+                            services.each { svc ->
+                                echo "🔨 Build et test de ${svc}..."
+                                sh """
+                                    mvn -f ${svc}/pom.xml clean verify \
+                                        --batch-mode \
+                                        -Dmaven.test.failure.ignore=false
+                                """
+                            }
+                        }
                     }
                 }
             }
@@ -98,7 +97,7 @@ pipeline {
                                 // Certaines applications produisent des rapports JaCoCo
                                 def jacocoOption = ''
                                 if (svc in ['product-service','user-service','media-service']) {
-                                    jacocoOption = "-Dsonar.coverage.jacoco.xmlReportPaths=${svc}/target/site/jacoco/jacoco.xml"
+                                    jacocoOption = "-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
                                 }
 
                                 sh """
@@ -106,7 +105,7 @@ pipeline {
                                         -Dsonar.projectKey=sonar-${svc.replace('-service','')} \
                                         -Dsonar.host.url=$SONAR_HOST_URL \
                                         -Dsonar.token=$SONAR_USER_TOKEN \
-                                        -Dsonar.java.binaries=${svc}/target/classes \
+                                        -Dsonar.java.binaries=target/classes \
                                         ${jacocoOption}
                                 """
                             }
