@@ -1,0 +1,42 @@
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# IDE / Editor
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+*.sw?
+.DS_Store
+
+# Build outputs
+target/
+**/target/
+build/
+out/
+
+# Local caches
+.m2/
+.gradle/
+.sonar/
+.scannerwork/
+sonar/
+jacoco.exec
+
+# Logs / Temp
+logs/
+**/*.log
+nohup.out
+.tmp/
+.temp/
+*.tmp
+
+# Misc
+README.md
+LICENSE
+docker-compose*.yml
+*.md
+

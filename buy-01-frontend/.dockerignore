@@ -1,0 +1,38 @@
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# IDE / Editor
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+*.sw?
+.DS_Store
+
+# Build artefacts
+node_modules/
+dist/
+coverage/
+.tmp/
+.temp/
+*.log
+**/*.log
+
+# Angular/CLI caches
+.npm-cache/
+.angular/
+.nx/
+.cache/
+
+# Misc
+README.md
+LICENSE
+Dockerfile
+Dockerfile.*
+docker-compose*.yml
+*.md
+**/*.md
+
