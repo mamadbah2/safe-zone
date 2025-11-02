@@ -29,8 +29,6 @@ pipeline {
         // Cache directories - améliore la performance
         MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository -Dmaven.artifact.threads=10'
         NPM_CONFIG_CACHE = '.npm-cache'
-        DOCKER_BUILDKIT = '1'
-        COMPOSE_DOCKER_CLI_BUILD = '1'
     }
 
     stages {
@@ -144,7 +142,6 @@ pipeline {
                             echo "🔨 Construction de ${service}..."
                             sh """
                                 docker build -t my_buy01_pipeline2-${service}:latest \
-                                    --build-arg BUILDKIT_INLINE_CACHE=1 \
                                     --build-arg MAVEN_OPTS="-Dmaven.test.skip=true" \
                                     --cache-from ${DOCKER_HUB_USER}/${PROJECT_NAME}-${service}:latest \
                                     -f ${serviceDir}/Dockerfile \
