@@ -87,44 +87,48 @@ pipeline {
             }
         }
 
-        stage('Code Quality (Sonar + Gate)') {
-            steps {
-                echo '🔍 Analyses Sonar en parallèle + attente des Quality Gates...'
-                script {
-                    withSonarQubeEnv('safe-zone-mr-jenk') {
-                        withCredentials([string(credentialsId: 'SONAR_USER_TOKEN', variable: 'SONAR_USER_TOKEN')]) {
-                            def services = ['discovery-service','config-service','api-gateway','product-service','user-service','media-service']
-                            def parallelQuality = [:]
+       // groovy
+       stage('Code Quality (Sonar + Gate)') {
+           steps {
+               echo '🔍 Analyses Sonar en parallèle + attente des Quality Gates...'
+               script {
+                   def services = ['discovery-service','config-service','api-gateway','product-service','user-service','media-service']
+                   def parallelQuality = [:]
 
-                            services.each { svc ->
-                                parallelQuality[svc] = {
-                                    echo "🔎 Sonar pour ${svc}..."
-                                    dir(svc) {
-                                        def jacocoOption = (svc in ['product-service','user-service','media-service']) ?
-                                            "-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml" : ""
+                   services.each { svc ->
+                       parallelQuality[svc] = {
+                           echo "🔎 Sonar pour ${svc}..."
+                           dir(svc) {
+                               // Move the Sonar wrapper and credentials inside each parallel branch
+                               withSonarQubeEnv('safe-zone-mr-jenk') {
+                                   withCredentials([string(credentialsId: 'SONAR_USER_TOKEN', variable: 'SONAR_USER_TOKEN')]) {
+                                       def jacocoOption = (svc in ['product-service','user-service','media-service']) ?
+                                           "-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml" : ""
 
-                                        sh """
-                                            mvn sonar:sonar \
-                                                -Dsonar.projectKey=sonar-${svc.replace('-service','')} \
-                                                -Dsonar.host.url=$SONAR_HOST_URL \
-                                                -Dsonar.token=$SONAR_USER_TOKEN \
-                                                -Dsonar.java.binaries=target/classes \
-                                                ${jacocoOption}
-                                        """
+                                       sh """
+                                           mvn sonar:sonar \
+                                               -Dsonar.projectKey=sonar-${svc.replace('-service','')} \
+                                               -Dsonar.host.url=$SONAR_HOST_URL \
+                                               -Dsonar.token=$SONAR_USER_TOKEN \
+                                               -Dsonar.java.binaries=target/classes \
+                                               ${jacocoOption}
+                                       """
+                                   } // withCredentials
+                               } // withSonarQubeEnv
 
-                                        timeout(time: 10, unit: 'MINUTES') {
-                                            waitForQualityGate abortPipeline: true
-                                        }
-                                    }
-                                }
-                            }
+                               // waitForQualityGate must run in the same workspace/context
+                               timeout(time: 10, unit: 'MINUTES') {
+                                   waitForQualityGate abortPipeline: true
+                               }
+                           } // dir
+                       }
+                   }
 
-                            parallel parallelQuality
-                        }
-                    }
-                }
-            }
-        }
+                   parallel parallelQuality
+               }
+           }
+       }
+
 
 
         stage('Build Docker Images') {
