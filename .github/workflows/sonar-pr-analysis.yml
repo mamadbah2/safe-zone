@@ -17,18 +17,18 @@ jobs:
       uses: actions/checkout@v3
 
     # 2️⃣ Setup JDK si ton projet est Java
-    - name: Set up JDK 17
+    - name: Set up JDK 21
       uses: actions/setup-java@v3
       with:
         distribution: temurin
-        java-version: 17
+        java-version: 21
 
     # 3️⃣ Setup Maven (si besoin)
     - name: Set up Maven
       uses: actions/setup-java@v3
       with:
         distribution: temurin
-        java-version: 17
+        java-version: 21
 
     # 4️⃣ Lancer SonarCloud pour chaque service
     - name: Run SonarCloud Scan
