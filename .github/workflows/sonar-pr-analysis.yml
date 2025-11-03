@@ -37,21 +37,19 @@ jobs:
       run: |
         echo "🔎 Analyse SonarCloud pour ${{ matrix.service }}"
 
-        # Se placer dans le dossier du microservice
         cd ${{ matrix.service }}
 
-        # Préparer l’option de couverture si applicable
         jacocoOption=""
         if [[ "${{ matrix.service }}" =~ ^(product-service|user-service|media-service)$ ]]; then
           jacocoOption="-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
         fi
 
-        # Lancer l’analyse SonarCloud
         mvn sonar:sonar \
-          -Dsonar.projectKey=mamadbah2_${{ matrix.service }} \
+          -Dsonar.projectKey=safe-zone \
           -Dsonar.organization=mamadbah2 \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.projectBaseDir=. \
+          -Dsonar.projectBaseDir=$(pwd) \
+          -Dsonar.moduleKey=${{ matrix.service }} \
           -Dsonar.sources=src/main/java \
           -Dsonar.tests=src/test/java \
           -Dsonar.java.binaries=target/classes \
