@@ -33,7 +33,7 @@ jobs:
     # 4️⃣ Lancer SonarCloud pour chaque service
     - name: Run SonarCloud Scan
       env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Ton token SonarCloud
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
         echo "🔎 Analyse SonarCloud pour ${{ matrix.service }}"
         cd ${{ matrix.service }}
@@ -43,7 +43,6 @@ jobs:
         fi
 
         mvn sonar:sonar \
-          -Dsonar.projectKey=sonar-${{ matrix.service }} \
           -Dsonar.organization=mamadbah2 \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONAR_TOKEN \
