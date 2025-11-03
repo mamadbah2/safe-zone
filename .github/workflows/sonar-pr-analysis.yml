@@ -38,6 +38,8 @@ jobs:
         echo "🔎 Analyse SonarCloud pour ${{ matrix.service }}"
 
         cd ${{ matrix.service }}
+        
+        mvn -B clean compile -DskipTests
 
         jacocoOption=""
         if [[ "${{ matrix.service }}" =~ ^(product-service|user-service|media-service)$ ]]; then
