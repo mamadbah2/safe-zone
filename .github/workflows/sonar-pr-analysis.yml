@@ -43,7 +43,6 @@ jobs:
         fi
 
         mvn sonar:sonar \
-          -Dsonar.projectKey=sonar-${{ matrix.service }} \
           -Dsonar.organization=mamadbah2 \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONAR_TOKEN \
