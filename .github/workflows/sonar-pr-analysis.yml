@@ -1,0 +1,68 @@
+name: SonarCloud PR Analysis
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [discovery-service, config-service, api-gateway, product-service, user-service, media-service]
+
+    steps:
+    # 1️⃣ Checkout de la branche PR
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2️⃣ Setup JDK si ton projet est Java
+    - name: Set up JDK 21
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: 21
+
+    # 3️⃣ Setup Maven (si besoin)
+    - name: Set up Maven
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: 21
+
+    # 4️⃣ Lancer SonarCloud pour chaque service
+    - name: Run SonarCloud Scan
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Ton token SonarCloud
+      run: |
+        echo "🔎 Analyse SonarCloud pour ${{ matrix.service }}"
+
+        cd ${{ matrix.service }}
+        
+        mvn -B clean compile -DskipTests
+
+        jacocoOption=""
+        if [[ "${{ matrix.service }}" =~ ^(product-service|user-service|media-service)$ ]]; then
+          jacocoOption="-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
+        fi
+
+        mvn sonar:sonar \
+          -Dsonar.projectKey=mamadbah2_safe-zone \
+          -Dsonar.organization=mamadbah2 \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.projectBaseDir=$(pwd) \
+          -Dsonar.moduleKey=${{ matrix.service }} \
+          -Dsonar.sources=src/main/java \
+          -Dsonar.tests=src/test/java \
+          -Dsonar.java.binaries=target/classes \
+          -Dsonar.token=$SONAR_TOKEN \
+          $jacocoOption
+
+
+    # 5️⃣ Attendre le Quality Gate
+    - name: Wait for SonarCloud Quality Gate
+      uses: sonarsource/sonarcloud-github-action@master
+      with:
+        projectBaseDir: ${{ matrix.service }}
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
