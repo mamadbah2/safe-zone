@@ -130,8 +130,9 @@ pipeline {
                            withSonarQubeEnv('safe-zone-mr-jenk') {
                                withCredentials([string(credentialsId: 'SONAR_USER_TOKEN', variable: 'SONAR_USER_TOKEN')]) {
                                    sh """
-                                       npm install -g sonarqube-scanner || true
-                                       sonar-scanner \
+                                       npm install --save-dev sonarqube-scanner --cache ${NPM_CONFIG_CACHE}
+
+                                       npx sonar-scanner \
                                            -Dsonar.projectKey=sonar-frontend \
                                            -Dsonar.sources=src \
                                            -Dsonar.tests=src \
@@ -140,15 +141,15 @@ pipeline {
                                            -Dsonar.typescript.lcov.reportPaths=coverage/buy-01-frontend/lcov.info \
                                            -Dsonar.host.url=$SONAR_HOST_URL \
                                            -Dsonar.token=$SONAR_USER_TOKEN
-                                   """
-                               } // withCredentials
-                           } // withSonarQubeEnv
-
-                           timeout(time: 10, unit: 'MINUTES') {
-                               waitForQualityGate abortPipeline: true
-                           }
-                       } // dir
-                   }
+                                    """
+                                }
+                            }
+                            // waitForQualityGate must run in the same workspace/context
+                            timeout(time: 10, unit: 'MINUTES') {
+                                waitForQualityGate abortPipeline: true
+                            }
+                        }
+                    }
 
                    parallel parallelQuality
                }
