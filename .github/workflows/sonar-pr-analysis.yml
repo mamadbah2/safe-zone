@@ -58,7 +58,6 @@ jobs:
           -Dsonar.token=$SONAR_TOKEN \
           $jacocoOption
 
-
     # 5️⃣ Attendre le Quality Gate
     - name: Wait for SonarCloud Quality Gate
       uses: sonarsource/sonarcloud-github-action@master
