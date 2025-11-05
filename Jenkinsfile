@@ -93,6 +93,7 @@ pipeline {
                    def services = ['discovery-service','config-service','api-gateway','product-service','user-service','media-service']
                    def parallelQuality = [:]
 
+                   // Backend services
                    services.each { svc ->
                        parallelQuality[svc] = {
                            echo "🔎 Sonar pour ${svc}..."
@@ -120,6 +121,33 @@ pipeline {
                                }
                            } // dir
                        }
+                   }
+
+                   // Frontend Angular
+                   parallelQuality['frontend'] = {
+                       echo "🔎 Sonar pour Frontend Angular..."
+                       dir('buy-01-frontend') {
+                           withSonarQubeEnv('safe-zone-mr-jenk') {
+                               withCredentials([string(credentialsId: 'SONAR_USER_TOKEN', variable: 'SONAR_USER_TOKEN')]) {
+                                   sh """
+                                       npm install -g sonarqube-scanner || true
+                                       sonar-scanner \
+                                           -Dsonar.projectKey=sonar-frontend \
+                                           -Dsonar.sources=src \
+                                           -Dsonar.tests=src \
+                                           -Dsonar.test.inclusions=**/*.spec.ts \
+                                           -Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/*.spec.ts \
+                                           -Dsonar.typescript.lcov.reportPaths=coverage/buy-01-frontend/lcov.info \
+                                           -Dsonar.host.url=$SONAR_HOST_URL \
+                                           -Dsonar.token=$SONAR_USER_TOKEN
+                                   """
+                               } // withCredentials
+                           } // withSonarQubeEnv
+
+                           timeout(time: 10, unit: 'MINUTES') {
+                               waitForQualityGate abortPipeline: true
+                           }
+                       } // dir
                    }
 
                    parallel parallelQuality
